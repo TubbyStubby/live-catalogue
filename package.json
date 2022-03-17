@@ -1,0 +1,29 @@
+{
+  "name": "live-catalogue",
+  "version": "0.0.1",
+  "description": "live catalogue which can update without deploying server",
+  "main": "lib",
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^4.6.2"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TubbyStubby/live-catalogue.git"
+  },
+  "keywords": [
+    "live",
+    "catalogue",
+    "remote"
+  ],
+  "author": "TubbyStubby",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TubbyStubby/live-catalogue/issues"
+  },
+  "homepage": "https://github.com/TubbyStubby/live-catalogue#readme"
+}
