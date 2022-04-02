@@ -39,9 +39,12 @@ export class Catalogue {
         }
     }
     
-    constructor() {
+    constructor(items?: Item[]) {
         this.#items = [];
         this.#initialized = false;
+        if(items) {
+            this.init(items);
+        }
     }
 
     get isInitialized(): boolean {
