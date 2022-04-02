@@ -7,11 +7,7 @@ export class Catalogue {
     #items: Item[];
     #initialized: boolean;
 
-    #initCheck() {
-        if(!this.isInitialized) {
-            throw new CatalogueError('Catalogue is not initialized');
-        }
-    }
+    #initCheck() { if(!this.isInitialized) throw new CatalogueError('Catalogue is not initialized'); }
 
     #idCheck(id: ItemId) { if(typeof id !== 'number') throw new CatalogueError('Id must be number'); }
 
@@ -32,9 +28,7 @@ export class Catalogue {
         }
     }
 
-    #findIndexById(id: ItemId): number {
-        return bSearch(this.#items, (a, b) => a.id - b.id, { id });
-    }
+    #findIndexById(id: ItemId): number { return bSearch(this.#items, (a, b) => a.id - b.id, { id }); }
 
     #findById(id: ItemId): Item | undefined {
         const pos = this.#findIndexById(id);
@@ -96,7 +90,5 @@ export class Catalogue {
         }
     }
 
-    fetchAll(): Item[] {
-        return cloneDeep(this.#items);
-    }
+    fetchAll(): Item[] { return cloneDeep(this.#items); }
 }
