@@ -12,6 +12,24 @@ const DummyItems: Item[] = [
     }
 ];
 
+describe('Checks', () => {
+    let catalogue: Catalogue;
+    
+    beforeEach(() => {
+        catalogue = new Catalogue(DummyItems);
+    });
+
+    test('isValidId - only positive number should be true', () => {
+        expect(catalogue.isValidId(undefined)).toBe(false);
+        expect(catalogue.isValidId({})).toBe(false);
+        expect(catalogue.isValidId(-1)).toBe(false);
+        expect(catalogue.isValidId(-Infinity)).toBe(false);
+        expect(catalogue.isValidId(null)).toBe(false);
+        expect(catalogue.isValidId(0)).toBe(false);
+        expect(catalogue.isValidId(1)).toBe(true);
+    });
+})
+
 describe('Catalogue Initialization', () => {
     test('Create instance without initial value', () => {
         const catalogue = new Catalogue();
@@ -132,6 +150,14 @@ describe('Update Operations', () => {
             newk: 1,
             newk2: { x: 2 }
         });
+    });
+
+    test('update - throws error when trying to update id', () => {
+        // need better solution
+        eval(`
+            const updates = { newk: 1, newk2: { x: 2 }, id: 2 };
+            expect(() => catalogue.update(1, updates)).toThrowError('Cannot update id');
+        `);
     });
 })
 

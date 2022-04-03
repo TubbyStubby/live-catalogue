@@ -56,10 +56,24 @@ export class Catalogue {
 
     get length() { return this.#items.length; }
 
-    init(items: Item[]): void {
+    init(items: Item[]) {
         if(this.isInitialized) return;
         this.#insertMany(items);
         this.#initialized = true;
+    }
+
+    isValidId(id: any): boolean { // eslint-disable-line @typescript-eslint/no-explicit-any
+        try {
+            this.#idCheck(id);
+            return true;
+        } catch(err) {
+            if(err instanceof CatalogueError) {
+                if(['Id must be number', 'Id must be positive number'].includes(err.message)) {
+                    return false;
+                }
+            }
+            throw err;
+        }
     }
 
     add(item: Item) {
