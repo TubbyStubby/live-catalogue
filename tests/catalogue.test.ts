@@ -1,4 +1,4 @@
-import { Item } from '../src/interfaces';
+import { Item, ItemUpdate } from '../src/interfaces';
 import { Catalogue } from '../src/classes';
 
 const DummyItems: Item[] = [
@@ -43,6 +43,11 @@ describe('Read operations', () => {
     beforeEach(() => {
         catalogue = new Catalogue(DummyItems);
     })
+
+    test('fetch - fails if catalogue is not initialized', () => {
+        const catalogue = new Catalogue();
+        expect(() => catalogue.fetch(1)).toThrowError('Catalogue is not initialized');
+    });
 
     test('fetch - returns the item', () => {
         const item = catalogue.fetch(1);
@@ -95,5 +100,57 @@ describe('Insert Operations', () => {
         const item: Item = { id: 3, obj: { x: 1 } };
         catalogue.add(item);
         expect(catalogue.fetch(3)).toEqual(item);
+    });
+    
+    test('add - inserted item should be deep copy', () => {
+        const item: Item = { id: 3, obj: { x: 1 } };
+        catalogue.add(item);
+        item.obj.x = 2;
+        expect(catalogue.fetch(3)).not.toEqual(item);
+    });
+})
+
+describe('Update Operations', () => {
+    let catalogue: Catalogue;
+    
+    beforeEach(() => {
+        catalogue = new Catalogue(DummyItems);
+    });
+
+    test('update - fails if catalogue is not initialized', () => {
+        const catalogue = new Catalogue();
+        const updates: ItemUpdate = { newk: 1, newk2: { x: 2 } };
+        expect(() => catalogue.update(1, updates)).toThrowError('Catalogue is not initialized');
+    });
+
+    test('update - keys are updated or added', () => {
+        const updates: ItemUpdate = { newk: 1, newk2: { x: 2 } };
+        catalogue.update(1, updates);
+        expect(catalogue.fetch(1)).toEqual({
+            id: 1,
+            obj: { x: 1 },
+            newk: 1,
+            newk2: { x: 2 }
+        });
+    });
+})
+
+describe('Delete Operations', () => {
+    let catalogue: Catalogue;
+
+    beforeEach(() => {
+        catalogue = new Catalogue(DummyItems);
+    });
+
+    test('delete - fails if catalogue is not initialized', () => {
+        const catalogue = new Catalogue();
+        expect(() => catalogue.delete(1)).toThrowError('Catalogue is not initialized');
+    });
+
+    test('delete - removes the item from catalogue', () => {
+        const initial_length = catalogue.length;
+        catalogue.delete(1);
+        expect(catalogue.length).toBe(initial_length - 1);
+        expect(catalogue.fetch(1)).not.toBeDefined();
     });
 })
