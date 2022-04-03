@@ -153,11 +153,8 @@ describe('Update Operations', () => {
     });
 
     test('update - throws error when trying to update id', () => {
-        // need better solution
-        eval(`
-            const updates = { newk: 1, newk2: { x: 2 }, id: 2 };
-            expect(() => catalogue.update(1, updates)).toThrowError('Cannot update id');
-        `);
+        const updates = { newk: 1, newk2: { x: 2 }, id: 2 };
+        expect(() => catalogue.update(1, <ItemUpdate><unknown>updates)).toThrowError('Cannot update id');
     });
 })
 
