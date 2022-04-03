@@ -9,12 +9,15 @@ export class Catalogue {
 
     #initCheck() { if(!this.isInitialized) throw new CatalogueError('Catalogue is not initialized'); }
 
-    #idCheck(id: ItemId) { if(typeof id !== 'number') throw new CatalogueError('Id must be number'); }
+    #idCheck(id: unknown) { 
+        if(typeof id !== 'number') throw new CatalogueError('Id must be number');
+        if(id <= 0) throw new CatalogueError('Id must be positive number');
+    }
 
     #insertItem(item: Item) {
         this.#idCheck(item.id);
         const pos = insertionIndex<Item>(this.#items, (a, b) => a.id - b.id, item);
-        if(this.#items[pos].id !== item.id) {
+        if(!this.#items[pos] || this.#items[pos].id !== item.id) {
             const item_clone = cloneDeep(item);
             this.#items.splice(pos, 0, item_clone);
         } else {
@@ -50,6 +53,8 @@ export class Catalogue {
     get isInitialized(): boolean {
         return this.#initialized;
     }
+
+    get length() { return this.#items.length; }
 
     init(items: Item[]): void {
         if(this.isInitialized) return;

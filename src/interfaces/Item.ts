@@ -2,7 +2,9 @@ export type ItemId = number;
 
 export interface Item {
     id: ItemId,
-    [key: string]: unknown
+    
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    [key: string]: any
 }
 
 export interface ItemUpdate {
