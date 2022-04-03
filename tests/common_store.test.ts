@@ -1,4 +1,4 @@
-import { CommonStore, CommonStoreError } from '../src/classes';
+import { CommonStore } from '../src/classes';
 import { Item, ItemUpdate } from '../src/interfaces';
 
 class DummyStore extends CommonStore<Map<number, Item>, number> { // eslint-disable-line @typescript-eslint/no-explicit-any
