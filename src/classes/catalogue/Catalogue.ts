@@ -83,6 +83,7 @@ export class Catalogue {
         this.#idCheck(id);
         const item = this.#findById(id);
         if(item) {
+            if('id' in update) throw new CatalogueError('Cannot update id');
             for(const key in update) {
                 item[key] = cloneDeep(update[key]);
             }
