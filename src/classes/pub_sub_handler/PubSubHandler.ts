@@ -65,12 +65,14 @@ export abstract class PubSubHandler<T> {
         if(this.isConnected) return;
         await this._connect();
         this.#state = PubSubStates.CONNECTED;
+        this.#events.emit(PubSubEvents.CONNECTED);
     }
 
     async disconnect() {
         if(!this.isConnected) return;
         await this._disconnect();
         this.#state = PubSubStates.DISCONNECTED;
+        this.#events.emit(PubSubEvents.DISCONNECTED);
     }
 
     async subscribe(channel: string) {
@@ -78,6 +80,7 @@ export abstract class PubSubHandler<T> {
         this.subModeCheck();
         await this._subscribe(channel);
         this.#state = PubSubStates.SUBSCRIBED;
+        this.#events.emit(PubSubEvents.SUBSCRIBED, channel);
     }
 
     async unsubscribe(channel: string) {
@@ -85,12 +88,14 @@ export abstract class PubSubHandler<T> {
         this.subModeCheck();
         await this._unsubscribe(channel);
         this.#state = PubSubStates.DISCONNECTED;
+        this.#events.emit(PubSubEvents.UNSUBSCRIBED, channel);
     }
 
     async publish(channel: string, message: string) {
         this.connectionCheck();
         this.pubModeCheck();
         await this._publish(channel, message);
+        this.#events.emit(PubSubEvents.PUBLISHED, channel, message);
     }
 
     on(event: PubSubEvents, listener: (...args: any[]) => void) { this.#events.on(event, listener); } // eslint-disable-line @typescript-eslint/no-explicit-any
