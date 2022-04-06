@@ -2,7 +2,6 @@ import { PubSubHandlerError } from "./PubSubHandlerError";
 import EventEmitter from 'events';
 
 export enum PubSubStates {
-    UNSUBSCRIBED = -1,
     DISCONNECTED = 0,
     CONNECTED = 1,
     SUBSCRIBED = 2
