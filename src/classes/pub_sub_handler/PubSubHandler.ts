@@ -43,12 +43,14 @@ export abstract class PubSubHandler<T> {
         this.#events = new EventEmitter();
     }
 
+    protected set state(state: PubSubStates) { this.#state = state; }
+
     get state() { return this.#state }
     get mode() { return this.#mode }
-    get isSubscribed() { return this.#state === PubSubStates.SUBSCRIBED }
-    get isConnected() { return this.#state >= PubSubStates.CONNECTED }
-    get canSubscribe() { return this.#mode === PubSubModes.SUB || this.#mode === PubSubModes.DUAL }
-    get canPublish() { return this.#mode === PubSubModes.PUB || this.#mode === PubSubModes.DUAL }
+    get isSubscribed() { return this.state === PubSubStates.SUBSCRIBED }
+    get isConnected() { return this.state >= PubSubStates.CONNECTED }
+    get canSubscribe() { return this.mode === PubSubModes.SUB || this.mode === PubSubModes.DUAL }
+    get canPublish() { return this.mode === PubSubModes.PUB || this.mode === PubSubModes.DUAL }
 
     connectionCheck() { if(!this.isConnected) throw new PubSubHandlerError('Not Connected') }
     subModeCheck() { if(!this.canSubscribe) throw new PubSubHandlerError('Can Not Subscribe') }
@@ -63,38 +65,38 @@ export abstract class PubSubHandler<T> {
     async connect() {
         if(this.isConnected) return;
         await this._connect();
-        this.#state = PubSubStates.CONNECTED;
-        this.#events.emit(PubSubEvents.CONNECTED);
+        this.state = PubSubStates.CONNECTED;
+        this.emit(PubSubEvents.CONNECTED);
     }
 
     async disconnect() {
         if(!this.isConnected) return;
         await this._disconnect();
-        this.#state = PubSubStates.DISCONNECTED;
-        this.#events.emit(PubSubEvents.DISCONNECTED);
+        this.state = PubSubStates.DISCONNECTED;
+        this.emit(PubSubEvents.DISCONNECTED);
     }
 
     async subscribe(channel: string) {
         this.connectionCheck();
         this.subModeCheck();
         await this._subscribe(channel);
-        this.#state = PubSubStates.SUBSCRIBED;
-        this.#events.emit(PubSubEvents.SUBSCRIBED, channel);
+        this.state = PubSubStates.SUBSCRIBED;
+        this.emit(PubSubEvents.SUBSCRIBED, channel);
     }
 
     async unsubscribe(channel: string) {
         this.connectionCheck();
         this.subModeCheck();
         await this._unsubscribe(channel);
-        this.#state = PubSubStates.DISCONNECTED;
-        this.#events.emit(PubSubEvents.UNSUBSCRIBED, channel);
+        this.state = PubSubStates.DISCONNECTED;
+        this.emit(PubSubEvents.UNSUBSCRIBED, channel);
     }
 
     async publish(channel: string, message: string) {
         this.connectionCheck();
         this.pubModeCheck();
         await this._publish(channel, message);
-        this.#events.emit(PubSubEvents.PUBLISHED, channel, message);
+        this.emit(PubSubEvents.PUBLISHED, channel, message);
     }
 
     on(event: PubSubEvents, listener: (...args: any[]) => void) { this.#events.on(event, listener); } // eslint-disable-line @typescript-eslint/no-explicit-any
