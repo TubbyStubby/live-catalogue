@@ -24,7 +24,7 @@ export enum PubSubEvents {
 
 export abstract class PubSubHandler<T> {
     static _validateMode(mode: unknown): boolean {
-        if(typeof mode == "number" && mode in PubSubStates) {
+        if(typeof mode == "number" && mode in PubSubModes) {
             return true;
         } else {
             return false;
