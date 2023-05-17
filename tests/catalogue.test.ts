@@ -77,7 +77,7 @@ describe('Read operations', () => {
         if(item?.obj) {
             item.obj = { newkey: 123 };
             const item2 = catalogue.fetch(1);
-            expect(item2?.obj).toEqual(DummyItems[0].obj);
+            expect(item2?.obj).toEqual(DummyItems[0]?.obj);
         } else {
             throw new Error('item is undefined');
         }

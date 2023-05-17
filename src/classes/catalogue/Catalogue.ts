@@ -17,7 +17,8 @@ export class Catalogue {
     #insertItem(item: Item) {
         this.#idCheck(item.id);
         const pos = insertionIndex<Item>(this.#items, (a, b) => a.id - b.id, item);
-        if(!this.#items[pos] || this.#items[pos].id !== item.id) {
+        const itemAtPos = this.#items[pos];
+        if(itemAtPos == undefined || itemAtPos.id !== item.id) {
             const item_clone = cloneDeep(item);
             this.#items.splice(pos, 0, item_clone);
         } else {
