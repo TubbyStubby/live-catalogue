@@ -1,7 +1,7 @@
 {
-  "name": "live-catalogue",
-  "version": "0.0.1",
-  "description": "live catalogue which can update without deploying server",
+  "name": "redstreak",
+  "version": "0.0.0",
+  "description": "live catalog/config which can update and sync changes in real time",
   "main": "lib",
   "dependencies": {
     "lodash.clonedeep": "^4.5.0"
@@ -24,17 +24,18 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/TubbyStubby/live-catalogue.git"
+    "url": "git+https://github.com/TubbyStubby/redstreak.git"
   },
   "keywords": [
     "live",
-    "catalogue",
-    "remote"
+    "catalog",
+    "remote",
+    "config"
   ],
   "author": "TubbyStubby",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/TubbyStubby/live-catalogue/issues"
+    "url": "https://github.com/TubbyStubby/redstreak/issues"
   },
-  "homepage": "https://github.com/TubbyStubby/live-catalogue#readme"
+  "homepage": "https://github.com/TubbyStubby/redstreak#readme"
 }
