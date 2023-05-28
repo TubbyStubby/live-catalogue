@@ -1,4 +1,3 @@
-import cloneDeep from "lodash.clonedeep";
 import { Catalog, Item } from "./Catalog";
 import { ColdStore } from "./ColdStore";
 import { CONFIG_STATUS, Config, ConfigManager } from "./Config";
@@ -220,7 +219,7 @@ export class LiveConfig<T extends Config, Q> extends LiveStore<T, Q> {
     }
     async update(updatedConfig: T): Promise<void> {
         this.initCheck();
-        const configCopy = cloneDeep(updatedConfig);
+        const configCopy = structuredClone(updatedConfig);
         configCopy.version += 1;
         await this.createNew(configCopy);
     }

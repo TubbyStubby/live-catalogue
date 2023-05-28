@@ -1,4 +1,3 @@
-import cloneDeep from "lodash.clonedeep";
 import { insertionIndex, bSearch } from "./utils";
 
 export interface Item {
@@ -44,7 +43,7 @@ export class InMemoryCatalog<TItem extends Item> implements Catalog<TItem> {
         const pos = insertionIndex<TItem>(this.#items, (a, b) => a.id - b.id, item);
         const itemAtPos = this.#items[pos];
         if(itemAtPos == undefined || itemAtPos.id !== item.id) {
-            this.#items.splice(pos, 0, cloneDeep(item));
+            this.#items.splice(pos, 0, structuredClone(item));
         } else {
             throw InMemoryCatalogError.DUPLICATE_INSERT_ERROR(item.id);
         }
@@ -54,7 +53,7 @@ export class InMemoryCatalog<TItem extends Item> implements Catalog<TItem> {
         this.assertId(item.id);
         const index = this.#findIndex(item);
         if(index > -1) {
-            this.#items[index] = cloneDeep(item);
+            this.#items[index] = structuredClone(item);
         } else {
             throw InMemoryCatalogError.INDEX_ERROR(item.id);
         }
@@ -64,11 +63,11 @@ export class InMemoryCatalog<TItem extends Item> implements Catalog<TItem> {
         this.assertId(id);
         const index = this.#findIndex(id);
         if(index > -1) {
-            return cloneDeep(this.#items[index]);
+            return structuredClone(this.#items[index]);
         }
     }
 
-    fetchAll(): TItem[] { return cloneDeep(this.#items); }
+    fetchAll(): TItem[] { return structuredClone(this.#items); }
 
     remove(id: TItem["id"]): void {
         this.assertId(id);

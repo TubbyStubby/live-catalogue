@@ -1,5 +1,3 @@
-import cloneDeep from "lodash.clonedeep";
-
 export const enum CONFIG_STATUS {
     INACTIVE,
     ACTIVE
@@ -44,9 +42,9 @@ export class InMemoryConfigManager<TConfig extends Config> implements ConfigMana
     get(version?: unknown): TConfig | undefined {
         if(version) {
             this.assertVersion(version);
-            return cloneDeep(this.#configs.get(version));
+            return structuredClone(this.#configs.get(version));
         } else {
-            return cloneDeep(this.#activeConfig);
+            return structuredClone(this.#activeConfig);
         }
     }
 
@@ -57,7 +55,7 @@ export class InMemoryConfigManager<TConfig extends Config> implements ConfigMana
             throw InMemoryConfigManagerError.ACTIVE_OVERWRITE();
         }
         if(!this.#configs.has(config.version)) {
-            this.#configs.set(config.version, cloneDeep(config));
+            this.#configs.set(config.version, structuredClone(config));
             if(config.status == CONFIG_STATUS.ACTIVE) this.activate(config.version);
         } else {
             throw InMemoryConfigManagerError.DUPLICATE_VERSION(config.version);
