@@ -2,6 +2,7 @@ import { Catalog, Item } from "./Catalog";
 import { ColdStore } from "./ColdStore";
 import { PubSub } from "./PubSub";
 import { LiveStoreOptions, LiveStore, LiveType } from "./LiveStore";
+import { DeepFrozen } from "constconst";
 
 enum LiveCatalogCommand {
     UPDATE = "UPDATE",
@@ -58,11 +59,11 @@ export class LiveCatalog<T extends Item, Q> extends LiveStore<T, LiveCatalogComm
                 console.warn("Invalid Command - ", msg);
         }
     }
-    findById(id: T["id"]): T | undefined {
+    findById(id: T["id"]): DeepFrozen<T> | undefined {
         const doc = this.hotStore.findById(id);
         return doc;
     }
-    fetchAll(): T[] {
+    fetchAll(): DeepFrozen<T>[] {
         const docs = this.hotStore.fetchAll();
         return docs;
     }

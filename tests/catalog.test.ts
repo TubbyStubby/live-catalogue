@@ -1,3 +1,4 @@
+import { ConstConstError } from 'constconst';
 import { Item, InMemoryCatalog } from '../src/Catalog';
 
 type DummyItem = Item & { obj: { x: number } };
@@ -57,11 +58,10 @@ describe('InMemoryCatalog Tests', () => {
             expect(item).toEqual(DummyItems[0]);
         });
     
-        test('fetch - item returned should be a deep copy', () => {
+        test('fetch - item returned should be immutable', () => {
             const item1 = catalog.findById(1);
-            const item2 = catalog.findById(1);
-            expect(item1).toEqual(item2);
-            expect(item1).not.toBe(item2);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            expect(() => (item1?.obj as any).x = 2).toThrowError(ConstConstError);
         });
     })
     

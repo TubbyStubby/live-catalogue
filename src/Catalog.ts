@@ -1,12 +1,13 @@
 import { insertionIndex, bSearch } from "./utils";
+import { deepFreeze, DeepFrozen } from "constconst";
 
 export interface Item {
     id: number;
 }
 
 export interface Catalog<T extends Item> {
-    findById(id: T["id"]): T | undefined;
-    fetchAll(): T[];
+    findById(id: T["id"]): DeepFrozen<T> | undefined;
+    fetchAll(): DeepFrozen<T>[];
     remove(id: T["id"]): void;
     insert(item: T): void;
     update(item: T): void;
@@ -15,7 +16,7 @@ export interface Catalog<T extends Item> {
 }
 
 export class InMemoryCatalog<TItem extends Item> implements Catalog<TItem> {
-    #items: TItem[];
+    #items: DeepFrozen<TItem>[];
 
     #itemIdComparator(a: Item, b: Item): number {
         return a.id - b.id;
@@ -40,10 +41,11 @@ export class InMemoryCatalog<TItem extends Item> implements Catalog<TItem> {
 
     insert(item: TItem): void {
         this.assertId(item.id);
-        const pos = insertionIndex<TItem>(this.#items, (a, b) => a.id - b.id, item);
+        const frozenClone = deepFreeze(structuredClone(item));
+        const pos = insertionIndex(this.#items, (a, b) => a.id - b.id, frozenClone);
         const itemAtPos = this.#items[pos];
         if(itemAtPos == undefined || itemAtPos.id !== item.id) {
-            this.#items.splice(pos, 0, structuredClone(item));
+            this.#items.splice(pos, 0, frozenClone);
         } else {
             throw InMemoryCatalogError.DUPLICATE_INSERT_ERROR(item.id);
         }
@@ -53,21 +55,26 @@ export class InMemoryCatalog<TItem extends Item> implements Catalog<TItem> {
         this.assertId(item.id);
         const index = this.#findIndex(item);
         if(index > -1) {
-            this.#items[index] = structuredClone(item);
+            const frozenClone = deepFreeze(structuredClone(item));
+            this.#items[index] = frozenClone;
         } else {
             throw InMemoryCatalogError.INDEX_ERROR(item.id);
         }
     }
 
-    findById(id: TItem["id"]): TItem | undefined {
+    findById(id: TItem["id"]): DeepFrozen<TItem> | undefined {
         this.assertId(id);
         const index = this.#findIndex(id);
         if(index > -1) {
-            return structuredClone(this.#items[index]);
+            return this.#items[index];
         }
     }
 
-    fetchAll(): TItem[] { return structuredClone(this.#items); }
+    fetchAll(): DeepFrozen<TItem>[] {
+        const copyArray: DeepFrozen<TItem>[] = [];
+        for(const item of this.#items) copyArray.push(item);
+        return copyArray;
+    }
 
     remove(id: TItem["id"]): void {
         this.assertId(id);
@@ -77,7 +84,7 @@ export class InMemoryCatalog<TItem extends Item> implements Catalog<TItem> {
         }
     }
     
-        assertId(id: unknown): asserts id is TItem["id"] {
+    assertId(id: unknown): asserts id is TItem["id"] {
         if(typeof id != "number" || isNaN(id) || id < 1) throw InMemoryCatalogError.INVALID_ID(id);
     }
 
