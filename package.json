@@ -33,5 +33,8 @@
   "bugs": {
     "url": "https://github.com/TubbyStubby/redstreak/issues"
   },
-  "homepage": "https://github.com/TubbyStubby/redstreak#readme"
+  "homepage": "https://github.com/TubbyStubby/redstreak#readme",
+  "dependencies": {
+    "constconst": "^1.0.0-beta.0"
+  }
 }
