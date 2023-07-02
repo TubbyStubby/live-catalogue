@@ -88,7 +88,7 @@ export class InMemoryConfigManager<TConfig extends Config> implements ConfigMana
     }
 
     assertVersion(version: unknown): asserts version is TConfig["version"] {
-        if(typeof version != 'number' || isNaN(version)) throw InMemoryConfigManagerError.INVALID_VERSION(version);
+        if(typeof version != 'number' || isNaN(version) || version < 0) throw InMemoryConfigManagerError.INVALID_VERSION(version);
     }
     
     assertStatus(status: unknown): asserts status is TConfig["status"] {

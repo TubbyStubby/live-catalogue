@@ -1,5 +1,5 @@
 import { Catalog, Item } from "./Catalog";
-import { ColdStore } from "./ColdStore";
+import { ItemColdStore } from "./ColdStore";
 import { PubSub } from "./PubSub";
 import { LiveStoreOptions, LiveStore, LiveType } from "./LiveStore";
 import { DeepFrozen } from "constconst";
@@ -9,14 +9,21 @@ enum LiveCatalogCommand {
     REMOVE = "REMOVE"
 }
 
-type LiveCatalogOptions<T extends Item, C, P> = LiveStoreOptions<T, C, P> & { hotStore: Catalog<T>; };
+type LiveCatalogOptions<T extends Item, P, Q> =
+    LiveStoreOptions<T, P>
+    & {
+        hotStore: Catalog<T>;
+        coldStore: ItemColdStore<T, Q>
+    }
 
-export class LiveCatalog<T extends Item, Q> extends LiveStore<T, LiveCatalogCommand, Q> {
+export class LiveCatalog<T extends Item, Q> extends LiveStore<T, LiveCatalogCommand> {
     protected hotStore: Catalog<T>;
     protected _type: LiveType = "LIVE_CATALOG";
-    constructor(options: LiveCatalogOptions<T, ColdStore<T, Q>, PubSub>) {
+    protected coldStore: ItemColdStore<T, Q>;
+    constructor(options: LiveCatalogOptions<T, PubSub, Q>) {
         super(options);
         this.hotStore = options.hotStore;
+        this.coldStore = options.coldStore;
     }
     get size(): number { return this.hotStore.size; }
     protected assertCommand(x: unknown): asserts x is LiveCatalogCommand {

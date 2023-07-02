@@ -1,4 +1,4 @@
-import { ColdStore } from "./ColdStore";
+import { ConfigColdStore } from "./ColdStore";
 import { CONFIG_STATUS, Config, ConfigManager } from "./Config";
 import { PubSub } from "./PubSub";
 import { LiveStoreOptions, LiveStore, LiveType } from "./LiveStore";
@@ -9,14 +9,21 @@ enum LiveConfigCommand {
     ACTIVATE = "ACTIVATE"
 }
 
-type LiveConfigOptions<T extends Config, C, P> = LiveStoreOptions<T, C, P> & { hotStore: ConfigManager<T>; };
+type LiveConfigOptions<T extends Config, P, Q> =
+    LiveStoreOptions<T, P>
+    & {
+        hotStore: ConfigManager<T>,
+        coldStore: ConfigColdStore<T, Q>
+    }
 
-export class LiveConfig<T extends Config, Q> extends LiveStore<T, LiveConfigCommand, Q> {
+export class LiveConfig<T extends Config, Q> extends LiveStore<T, LiveConfigCommand> {
     protected _type: LiveType = "LIVE_CONFIG";
     protected hotStore: ConfigManager<T>;
-    constructor(options: LiveConfigOptions<T, ColdStore<T, Q>, PubSub>) {
+    protected coldStore: ConfigColdStore<T, Q>;
+    constructor(options: LiveConfigOptions<T, PubSub, Q>) {
         super(options);
         this.hotStore = options.hotStore;
+        this.coldStore = options.coldStore;
     }
     protected assertCommand(x: unknown): asserts x is LiveConfigCommand {
         if(typeof x != 'string') throw new Error("Bad Command");

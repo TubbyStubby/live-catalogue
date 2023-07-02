@@ -1,11 +1,9 @@
 import { Item } from "./Catalog";
-import { ColdStore } from "./ColdStore";
 import { Config } from "./Config";
 import { PubSub } from "./PubSub";
 
-export type LiveStoreOptions<T, C, P> = {
+export type LiveStoreOptions<T, P> = {
     name: string,
-    coldStore: C,
     pubsub: P,
     fallBackToDefault?: boolean,
     skipInitIfDefaultSet?: boolean,
@@ -13,12 +11,12 @@ export type LiveStoreOptions<T, C, P> = {
 }
 
 export type LiveType = "LIVE_CATALOG" | "LIVE_CONFIG";
-export abstract class LiveStore<T extends Item | Config, Cmd, Q> {
+export abstract class LiveStore<T extends Item | Config, Cmd> {
     protected abstract _type: LiveType;
     protected abstract hotStore: unknown;
+    protected abstract coldStore: unknown;
     protected initialized: boolean;
     protected pubsub: PubSub;
-    protected coldStore: ColdStore<T, Q>;
     protected fallBackToDefault: boolean;
     protected default: T | T[] | undefined;
     protected skipInitIfDefaultSet: boolean;
@@ -48,9 +46,8 @@ export abstract class LiveStore<T extends Item | Config, Cmd, Q> {
         }
     }
     
-    constructor(options: LiveStoreOptions<T, ColdStore<T, Q>, PubSub>) {
+    constructor(options: LiveStoreOptions<T, PubSub>) {
         this._name = options.name;
-        this.coldStore = options.coldStore;
         this.pubsub = options.pubsub;
         this.fallBackToDefault = options.fallBackToDefault ?? false;
         this.default = options.default;
