@@ -2,7 +2,8 @@
   "name": "redstreak",
   "version": "0.0.0",
   "description": "live catalog/config which can update and sync changes in real time",
-  "main": "lib",
+  "main": "lib/index.js",
+  "types": "lib/types",
   "devDependencies": {
     "@types/jest": "^27.4.1",
     "@types/node": "^18.16.16",
@@ -16,7 +17,7 @@
   "scripts": {
     "build": "tsc",
     "test": "jest",
-    "test-coverage": "jest --coverage"
+    "test:coverage": "jest --coverage"
   },
   "repository": {
     "type": "git",
@@ -36,5 +37,11 @@
   "homepage": "https://github.com/TubbyStubby/redstreak#readme",
   "dependencies": {
     "constconst": "^1.0.0-beta.0"
-  }
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "files": [
+    "lib"
+  ]
 }
