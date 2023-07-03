@@ -78,18 +78,18 @@ export class LiveCatalog<T extends Item, Q> extends LiveStore<T, LiveCatalogComm
         this.initCheck();
         await this.coldStore.update(id, query);
         const actionMsg: string = this.createActionMessage(LiveCatalogCommand.UPDATE, id);
-        await this.pubsub.publish(actionMsg);
+        await this.pubsub.publish(this.channelName, actionMsg);
     }
     async remove(id: T["id"]): Promise<void> {
         this.initCheck();
         await this.coldStore.remove(id);
         const actionMsg: string = this.createActionMessage(LiveCatalogCommand.REMOVE, id);
-        await this.pubsub.publish(actionMsg);
+        await this.pubsub.publish(this.channelName, actionMsg);
     }
     async createNew(item: T): Promise<void> {
         this.initCheck();
         await this.coldStore.insert(item);
         const actionMsg: string = this.createActionMessage(LiveCatalogCommand.UPDATE, item.id);
-        await this.pubsub.publish(actionMsg);
+        await this.pubsub.publish(this.channelName, actionMsg);
     }
 }

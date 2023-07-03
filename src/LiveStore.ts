@@ -69,13 +69,12 @@ export abstract class LiveStore<T extends Item | Config, Cmd> {
     async init(): Promise<void> {
         if(this.isInitiallized || this.canSkipInit) return;
         await this.cacheDocs();
-        await this.subscribe();
+        await this.#subscribe();
         this.initialized = true;
     }
 
-    async subscribe(): Promise<void> {
-        await this.pubsub.subscribe(this.channelName);
-        this.pubsub.onMessage(async (msg: string) => {
+    async #subscribe(): Promise<void> {
+        await this.pubsub.subscribe(this.channelName, async (msg: string) => {
             await this.action(msg);
         });
     }

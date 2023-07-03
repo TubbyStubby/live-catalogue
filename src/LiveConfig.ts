@@ -82,13 +82,13 @@ export class LiveConfig<T extends Config, Q> extends LiveStore<T, LiveConfigComm
         this.initCheck();
         await this.coldStore.insert(config);
         const actionMsg: string = this.createActionMessage(LiveConfigCommand.UPDATE, config["version"]);
-        await this.pubsub.publish(actionMsg);
+        await this.pubsub.publish(this.channelName, actionMsg);
     }
     async remove(version: T["version"]): Promise<void> {
         this.initCheck();
         await this.coldStore.remove(version);
         const actionMsg: string = this.createActionMessage(LiveConfigCommand.REMOVE, version);
-        await this.pubsub.publish(actionMsg);
+        await this.pubsub.publish(this.channelName, actionMsg);
     }
     async update(updatedConfig: T): Promise<void> {
         this.initCheck();
@@ -108,6 +108,6 @@ export class LiveConfig<T extends Config, Q> extends LiveStore<T, LiveConfigComm
             await this.coldStore.updateField(version, "status", CONFIG_STATUS.ACTIVE);
         }
         const actionMsg: string = this.createActionMessage(LiveConfigCommand.ACTIVATE, version);
-        await this.pubsub.publish(actionMsg);
+        await this.pubsub.publish(this.channelName, actionMsg);
     }
 }
