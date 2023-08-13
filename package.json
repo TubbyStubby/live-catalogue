@@ -36,7 +36,7 @@
   },
   "homepage": "https://github.com/TubbyStubby/redstreak#readme",
   "dependencies": {
-    "constconst": "^1.0.0-beta.0"
+    "constconst": "^2.0.1"
   },
   "engines": {
     "node": ">=16.0.0"

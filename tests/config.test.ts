@@ -1,3 +1,4 @@
+import { ConstConstError } from 'constconst';
 import { CONFIG_STATUS, Config, ConfigManager, InMemoryConfigManager } from '../src/Config';
 
 type DummyConfig = Config & { obj: { x: number } };
@@ -76,11 +77,14 @@ describe('InMemoryCatalog Tests', () => {
             expect(config).toEqual(DummyConfigs[0]);
         });
     
-        test('get - item returned should be deep clone', () => {
-            const config1 = configManager.get();
-            const config2 = configManager.get();
-            expect(config1).not.toBe(config2);
-            expect(config1).toEqual(config2);
+        test('get - item returned should be frozen', () => {
+            const config = configManager.get();
+            if(config) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                expect(() => { (config.obj.x as any) = 1; }).toThrowError(ConstConstError);
+            } else {
+                throw new Error("Bad test");
+            }
         });
     })
     

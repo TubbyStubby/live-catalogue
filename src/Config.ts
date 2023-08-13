@@ -1,3 +1,5 @@
+import { fakeDeepFreeze, DeepFrozen } from "constconst";
+
 export const enum CONFIG_STATUS {
     INACTIVE,
     ACTIVE
@@ -13,8 +15,8 @@ function isActive(c: Config) {
 }
 
 export interface ConfigManager<T extends Config> {
-    get(): T | undefined;
-    get(version: T["version"]): T | undefined;
+    get(): DeepFrozen<T> | undefined;
+    get(version: T["version"]): DeepFrozen<T> | undefined;
     remove(version: T["version"]): void;
     add(config: T): void;
     activate(version: T["version"]): void;
@@ -26,10 +28,12 @@ export interface ConfigManager<T extends Config> {
 
 export class InMemoryConfigManager<TConfig extends Config> implements ConfigManager<TConfig> {
     #configs: Map<Config["version"], TConfig>;
+    #fakeConfigs: Map<Config["version"], DeepFrozen<TConfig>>;
     #activeConfig: TConfig | undefined;
 
     constructor(configs?: TConfig[]) {
         this.#configs = new Map();
+        this.#fakeConfigs = new Map();
         if(configs != undefined) {
             for(const config of configs) this.add(config);
         }
@@ -37,14 +41,15 @@ export class InMemoryConfigManager<TConfig extends Config> implements ConfigMana
 
     get activeVersion(): number | undefined { return this.#activeConfig?.version; }
 
-    get(): TConfig | undefined;
-    get(version: TConfig["version"]): TConfig | undefined;
-    get(version?: unknown): TConfig | undefined {
+    get(): DeepFrozen<TConfig> | undefined;
+    get(version: TConfig["version"]): DeepFrozen<TConfig> | undefined;
+    get(version?: unknown): DeepFrozen<TConfig> | undefined {
         if(version) {
             this.assertVersion(version);
-            return structuredClone(this.#configs.get(version));
+            return this.#fakeConfigs.get(version);
         } else {
-            return structuredClone(this.#activeConfig);
+            if(this.#activeConfig)
+                return this.#fakeConfigs.get(this.#activeConfig.version);
         }
     }
 
@@ -55,7 +60,10 @@ export class InMemoryConfigManager<TConfig extends Config> implements ConfigMana
             throw InMemoryConfigManagerError.ACTIVE_OVERWRITE();
         }
         if(!this.#configs.has(config.version)) {
-            this.#configs.set(config.version, structuredClone(config));
+            const clone = structuredClone(config);
+            const fakeClone = fakeDeepFreeze(clone);
+            this.#configs.set(config.version, clone);
+            this.#fakeConfigs.set(config.version, fakeClone);
             if(config.status == CONFIG_STATUS.ACTIVE) this.activate(config.version);
         } else {
             throw InMemoryConfigManagerError.DUPLICATE_VERSION(config.version);
@@ -70,6 +78,7 @@ export class InMemoryConfigManager<TConfig extends Config> implements ConfigMana
             throw InMemoryConfigManagerError.REMOVING_ACTIVE_CONFIG(version);
         } else {
             this.#configs.delete(version);
+            this.#fakeConfigs.delete(version);
         }
     }
 
