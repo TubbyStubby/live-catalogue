@@ -1,5 +1,5 @@
 import { ConstConstError } from 'constconst';
-import { Item, InMemoryCatalog } from '../src/Catalog';
+import { Item, InMemoryCatalog } from '../src';
 
 type DummyItem = Item & { obj: { x: number } };
 

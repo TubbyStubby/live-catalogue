@@ -2,6 +2,7 @@ import { ConfigColdStore } from "./ColdStore";
 import { CONFIG_STATUS, Config, ConfigManager } from "./Config";
 import { PubSub } from "./PubSub";
 import { LiveStoreOptions, LiveStore, LiveType } from "./LiveStore";
+import { DeepFrozen } from "constconst";
 
 enum LiveConfigCommand {
     UPDATE = "UPDATE",
@@ -69,7 +70,7 @@ export class LiveConfig<T extends Config, Q> extends LiveStore<T, LiveConfigComm
                 console.warn("Invalid action - ", msg);
         }
     }
-    get(version?: T["version"]): T | undefined {
+    get(version?: T["version"]): DeepFrozen<T> | undefined {
         if (version == undefined) {
             return this.hotStore.get();
         } else {
