@@ -1,5 +1,5 @@
 import { ConstConstError } from 'constconst';
-import { CONFIG_STATUS, Config, ConfigManager, InMemoryConfigManager } from '../src/Config';
+import { CONFIG_STATUS, Config, ConfigManager, InMemoryConfigManager } from '../src';
 
 type DummyConfig = Config & { obj: { x: number } };
 
