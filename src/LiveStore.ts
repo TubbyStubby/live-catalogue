@@ -13,8 +13,6 @@ export type LiveStoreOptions<T, P> = {
 export type LiveType = "LIVE_CATALOG" | "LIVE_CONFIG";
 export abstract class LiveStore<T extends Item | Config, Cmd> {
     protected abstract _type: LiveType;
-    protected abstract hotStore: unknown;
-    protected abstract coldStore: unknown;
     protected initialized: boolean;
     protected pubsub: PubSub;
     protected fallBackToDefault: boolean;

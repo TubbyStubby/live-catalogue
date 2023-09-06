@@ -12,20 +12,20 @@ enum LiveCatalogCommand {
 type LiveCatalogOptions<T extends Item, P, Q> =
     LiveStoreOptions<T, P>
     & {
-        hotStore: Catalog<T>;
+        catalog: Catalog<T>;
         coldStore: ItemColdStore<T, Q>
     }
 
 export class LiveCatalog<T extends Item, Q> extends LiveStore<T, LiveCatalogCommand> {
-    protected hotStore: Catalog<T>;
+    protected catalog: Catalog<T>;
     protected _type: LiveType = "LIVE_CATALOG";
     protected coldStore: ItemColdStore<T, Q>;
     constructor(options: LiveCatalogOptions<T, PubSub, Q>) {
         super(options);
-        this.hotStore = options.hotStore;
+        this.catalog = options.catalog;
         this.coldStore = options.coldStore;
     }
-    get size(): number { return this.hotStore.size; }
+    get size(): number { return this.catalog.size; }
     protected assertCommand(x: unknown): asserts x is LiveCatalogCommand {
         if(typeof x != 'string') throw new Error("Bad Command");
         if(!(x in LiveCatalogCommand)) throw new Error("Bad Command");
@@ -42,12 +42,12 @@ export class LiveCatalog<T extends Item, Q> extends LiveStore<T, LiveCatalogComm
         } else {
             docs = await this.coldStore.findAll();
         }
-        docs.forEach(x => this.hotStore.insert(x));
+        docs.forEach(x => this.catalog.insert(x));
     }
     protected async cacheDoc(id: T["id"]): Promise<void> {
         const doc = await this.coldStore.find(id);
         if (doc != undefined)
-            this.hotStore.insert(doc);
+            this.catalog.insert(doc);
     }
     protected async action(msg: string): Promise<void> {
         const { command, id } = this.decodeActionMessage(msg);
@@ -60,18 +60,18 @@ export class LiveCatalog<T extends Item, Q> extends LiveStore<T, LiveCatalogComm
                 break;
             case LiveCatalogCommand.REMOVE:
                 if (id != undefined)
-                    this.hotStore.remove(id);
+                    this.catalog.remove(id);
                 break;
             default:
                 console.warn("Invalid Command - ", msg);
         }
     }
     findById(id: T["id"]): DeepFrozen<T> | undefined {
-        const doc = this.hotStore.findById(id);
+        const doc = this.catalog.findById(id);
         return doc;
     }
     fetchAll(): DeepFrozen<T>[] {
-        const docs = this.hotStore.fetchAll();
+        const docs = this.catalog.fetchAll();
         return docs;
     }
     async updateOne(id: T["id"], query: Q): Promise<void> {

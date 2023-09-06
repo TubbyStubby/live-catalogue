@@ -13,17 +13,17 @@ enum LiveConfigCommand {
 type LiveConfigOptions<T extends Config, P, Q> =
     LiveStoreOptions<T, P>
     & {
-        hotStore: ConfigManager<T>,
+        configManager: ConfigManager<T>,
         coldStore: ConfigColdStore<T, Q>
     }
 
 export class LiveConfig<T extends Config, Q> extends LiveStore<T, LiveConfigCommand> {
     protected _type: LiveType = "LIVE_CONFIG";
-    protected hotStore: ConfigManager<T>;
+    protected configManager: ConfigManager<T>;
     protected coldStore: ConfigColdStore<T, Q>;
     constructor(options: LiveConfigOptions<T, PubSub, Q>) {
         super(options);
-        this.hotStore = options.hotStore;
+        this.configManager = options.configManager;
         this.coldStore = options.coldStore;
     }
     protected assertCommand(x: unknown): asserts x is LiveConfigCommand {
@@ -42,12 +42,12 @@ export class LiveConfig<T extends Config, Q> extends LiveStore<T, LiveConfigComm
         } else {
             docs = await this.coldStore.findAll();
         }
-        docs.forEach(x => this.hotStore.add(x));
+        docs.forEach(x => this.configManager.add(x));
     }
     protected async cacheDoc(version: T["version"]): Promise<void> {
         const doc = await this.coldStore.find(version);
         if (doc != undefined)
-            this.hotStore.add(doc);
+            this.configManager.add(doc);
     }
     protected async action(msg: string): Promise<void> {
         const { command, id } = this.decodeActionMessage(msg);
@@ -60,11 +60,11 @@ export class LiveConfig<T extends Config, Q> extends LiveStore<T, LiveConfigComm
                 break;
             case LiveConfigCommand.REMOVE:
                 if (id != undefined)
-                    this.hotStore.remove(id);
+                    this.configManager.remove(id);
                 break;
             case LiveConfigCommand.ACTIVATE:
                 if (id != undefined)
-                    this.hotStore.activate(id);
+                    this.configManager.activate(id);
                 break;
             default:
                 console.warn("Invalid action - ", msg);
@@ -72,13 +72,13 @@ export class LiveConfig<T extends Config, Q> extends LiveStore<T, LiveConfigComm
     }
     get(version?: T["version"]): DeepFrozen<T> | undefined {
         if (version == undefined) {
-            return this.hotStore.get();
+            return this.configManager.get();
         } else {
-            return this.hotStore.get(version);
+            return this.configManager.get(version);
         }
     }
-    get size() { return this.hotStore.size; }
-    get activeVersion() { return this.hotStore.activeVersion; } 
+    get size() { return this.configManager.size; }
+    get activeVersion() { return this.configManager.activeVersion; } 
     async createNew(config: T): Promise<void> {
         this.initCheck();
         await this.coldStore.insert(config);
@@ -99,7 +99,7 @@ export class LiveConfig<T extends Config, Q> extends LiveStore<T, LiveConfigComm
     }
     async activate(version: T["version"]): Promise<void> {
         this.initCheck();
-        const activeVersion = this.hotStore.activeVersion;
+        const activeVersion = this.configManager.activeVersion;
         if (activeVersion != undefined) {
             if (activeVersion == version)
                 return;
