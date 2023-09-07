@@ -10,10 +10,12 @@ export interface ItemColdStore<T extends Item, Q> {
 }
 
 export interface ConfigColdStore<T extends Config, Q> {
-    find(x: Config["version"]): Promise<T | undefined>;
+    find(version: Config["version"]): Promise<T | undefined>;
     findAll(): Promise<T[]>;
-    remove(x: Config["version"]): Promise<void>;
-    insert(x: T): Promise<void>;
-    update(id: Config["version"], query: Q): Promise<void>;
-    updateField<K extends keyof T>(id: Config["version"], field: K, value: T[K]): Promise<void>;
+    remove(version: Config["version"]): Promise<void>;
+    insert(version: T): Promise<void>;
+    updateField<K extends keyof T>(version: Config["version"], field: K, value: T[K]): Promise<void>;
+    updateFields(version: Config["version"], values: { [K in keyof T]: T[K] }): Promise<void>;
+    flipStatus(versions: Config["version"][]): Promise<void>;
+    flipStatus(...versions: Config["version"][]): Promise<void>;
 }
