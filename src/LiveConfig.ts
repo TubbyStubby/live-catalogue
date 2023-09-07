@@ -78,7 +78,7 @@ export class LiveConfig<T extends Config, Q> extends LiveStore<T, LiveConfigComm
         }
     }
     get size() { return this.configManager.size; }
-    get activeVersion() { return this.configManager.activeVersion; } 
+    get activeVersion() { return this.configManager.activeVersion; }
     async createNew(config: T): Promise<void> {
         this.initCheck();
         await this.coldStore.insert(config);
@@ -91,11 +91,15 @@ export class LiveConfig<T extends Config, Q> extends LiveStore<T, LiveConfigComm
         const actionMsg: string = this.createActionMessage(LiveConfigCommand.REMOVE, version);
         await this.pubsub.publish(this.channelName, actionMsg);
     }
-    async update(updatedConfig: T): Promise<void> {
+    async updateFields(version: Config["version"], values: { [K in keyof T]: T[K] }): Promise<void> {
         this.initCheck();
-        const configCopy = structuredClone(updatedConfig);
-        configCopy.version += 1;
-        await this.createNew(configCopy);
+        for(const k in values)
+            if(k == "version" || k == "status") throw LiveConfigError.FIELD_UPDATE(k, values[k]);
+        const conf = this.configManager.get(version);
+        if(!conf) return;
+        await this.coldStore.updateFields(version, values);
+        const actionMsg = this.createActionMessage(LiveConfigCommand.UPDATE, version);
+        await this.pubsub.publish(this.channelName, actionMsg);
     }
     async activate(version: T["version"]): Promise<void> {
         this.initCheck();
@@ -103,12 +107,22 @@ export class LiveConfig<T extends Config, Q> extends LiveStore<T, LiveConfigComm
         if (activeVersion != undefined) {
             if (activeVersion == version)
                 return;
-            await this.coldStore.updateField(version, "status", CONFIG_STATUS.ACTIVE);
-            await this.coldStore.updateField(activeVersion, "status", CONFIG_STATUS.INACTIVE);
+            await this.coldStore.flipStatus(version, activeVersion);
         } else {
             await this.coldStore.updateField(version, "status", CONFIG_STATUS.ACTIVE);
         }
         const actionMsg: string = this.createActionMessage(LiveConfigCommand.ACTIVATE, version);
         await this.pubsub.publish(this.channelName, actionMsg);
+    }
+}
+
+export class LiveConfigError extends Error {
+    static FIELD_UPDATE(field: string, value: unknown): LiveConfigError {
+        return new LiveConfigError(`FIELD_UPDATE: trying to update immutable field ${field} with value ${value}`);
+    }
+
+    constructor(message: string) {
+        super(message);
+        this.name = this.constructor.name;
     }
 }

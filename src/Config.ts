@@ -1,6 +1,6 @@
 import { fakeDeepFreeze, DeepFrozen } from "constconst";
 
-export const enum CONFIG_STATUS {
+export enum CONFIG_STATUS {
     INACTIVE,
     ACTIVE
 }
