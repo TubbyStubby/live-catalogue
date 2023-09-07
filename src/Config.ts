@@ -24,46 +24,47 @@ export interface ConfigManager<T extends Config> {
     assertStatus(status: unknown): asserts status is T["status"];
     get size(): number;
     get activeVersion(): Config["version"] | undefined;
+    activeConfig: DeepFrozen<T> | undefined;
 }
 
 export class InMemoryConfigManager<TConfig extends Config> implements ConfigManager<TConfig> {
-    #configs: Map<Config["version"], TConfig>;
-    #fakeConfigs: Map<Config["version"], DeepFrozen<TConfig>>;
-    #activeConfig: TConfig | undefined;
+    private configs: Map<Config["version"], TConfig>;
+    private fakeConfigs: Map<Config["version"], DeepFrozen<TConfig>>;
+    activeConfig: DeepFrozen<TConfig> | undefined;
 
     constructor(configs?: TConfig[]) {
-        this.#configs = new Map();
-        this.#fakeConfigs = new Map();
+        this.configs = new Map();
+        this.fakeConfigs = new Map();
         if(configs != undefined) {
             for(const config of configs) this.add(config);
         }
     }
 
-    get activeVersion(): number | undefined { return this.#activeConfig?.version; }
+    get activeVersion(): number | undefined { return this.activeConfig?.version; }
 
     get(): DeepFrozen<TConfig> | undefined;
     get(version: TConfig["version"]): DeepFrozen<TConfig> | undefined;
     get(version?: unknown): DeepFrozen<TConfig> | undefined {
         if(version) {
             this.assertVersion(version);
-            return this.#fakeConfigs.get(version);
+            return this.fakeConfigs.get(version);
         } else {
-            if(this.#activeConfig)
-                return this.#fakeConfigs.get(this.#activeConfig.version);
+            if(this.activeConfig)
+                return this.fakeConfigs.get(this.activeConfig.version);
         }
     }
 
     add(config: TConfig): void {
         this.assertVersion(config.version);
         this.assertStatus(config.status);
-        if(config.status == CONFIG_STATUS.ACTIVE && this.#activeConfig != undefined) {
+        if(config.status == CONFIG_STATUS.ACTIVE && this.activeConfig != undefined && this.activeConfig.version != config.version) {
             throw InMemoryConfigManagerError.ACTIVE_OVERWRITE();
         }
-        if(!this.#configs.has(config.version)) {
+        if(!this.configs.has(config.version)) {
             const clone = structuredClone(config);
             const fakeClone = fakeDeepFreeze(clone);
-            this.#configs.set(config.version, clone);
-            this.#fakeConfigs.set(config.version, fakeClone);
+            this.configs.set(config.version, clone);
+            this.fakeConfigs.set(config.version, fakeClone);
             if(config.status == CONFIG_STATUS.ACTIVE) this.activate(config.version);
         } else {
             throw InMemoryConfigManagerError.DUPLICATE_VERSION(config.version);
@@ -72,28 +73,29 @@ export class InMemoryConfigManager<TConfig extends Config> implements ConfigMana
 
     remove(version: TConfig["version"]): void {
         this.assertVersion(version);
-        const config = this.#configs.get(version);
+        const config = this.configs.get(version);
         if(config == undefined) return;
         if(isActive(config)) {
             throw InMemoryConfigManagerError.REMOVING_ACTIVE_CONFIG(version);
         } else {
-            this.#configs.delete(version);
-            this.#fakeConfigs.delete(version);
+            this.configs.delete(version);
+            this.fakeConfigs.delete(version);
         }
     }
 
     activate(version: TConfig["version"]): void {
         this.assertVersion(version);
-        const config = this.#configs.get(version);
+        const config = this.configs.get(version);
         if(config == undefined) throw InMemoryConfigManagerError.NO_CONFIG(version);
-        const activeConfig = this.#activeConfig;
+        const activeVersion = this.activeVersion;
+        const activeConfig = activeVersion != undefined ? this.configs.get(activeVersion) : undefined;
         if(activeConfig == config) return;
         if(activeConfig != undefined) {
             [activeConfig.status, config.status] = [CONFIG_STATUS.INACTIVE, CONFIG_STATUS.ACTIVE];
         } else {
             config.status = CONFIG_STATUS.ACTIVE;
         }
-        this.#activeConfig = config;
+        this.activeConfig = this.fakeConfigs.get(config.version);
     }
 
     assertVersion(version: unknown): asserts version is TConfig["version"] {
@@ -105,7 +107,7 @@ export class InMemoryConfigManager<TConfig extends Config> implements ConfigMana
         if(status != CONFIG_STATUS.INACTIVE && status != CONFIG_STATUS.ACTIVE) throw InMemoryConfigManagerError.INVALID_STATUS(status);
     }
 
-    get size(): number { return this.#configs.size }
+    get size(): number { return this.configs.size }
 }
 
 type ErroMetadata = { [x: string]: unknown };

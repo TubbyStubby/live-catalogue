@@ -10,18 +10,18 @@ enum LiveConfigCommand {
     ACTIVATE = "ACTIVATE"
 }
 
-type LiveConfigOptions<T extends Config, P, Q> =
+type LiveConfigOptions<T extends Config, P> =
     LiveStoreOptions<T, P>
     & {
         configManager: ConfigManager<T>,
-        coldStore: ConfigColdStore<T, Q>
+        coldStore: ConfigColdStore<T>
     }
 
-export class LiveConfig<T extends Config, Q> extends LiveStore<T, LiveConfigCommand> {
+export class LiveConfig<T extends Config> extends LiveStore<T, LiveConfigCommand> {
     protected _type: LiveType = "LIVE_CONFIG";
     protected configManager: ConfigManager<T>;
-    protected coldStore: ConfigColdStore<T, Q>;
-    constructor(options: LiveConfigOptions<T, PubSub, Q>) {
+    protected coldStore: ConfigColdStore<T>;
+    constructor(options: LiveConfigOptions<T, PubSub>) {
         super(options);
         this.configManager = options.configManager;
         this.coldStore = options.coldStore;
@@ -50,21 +50,21 @@ export class LiveConfig<T extends Config, Q> extends LiveStore<T, LiveConfigComm
             this.configManager.add(doc);
     }
     protected async action(msg: string): Promise<void> {
-        const { command, id } = this.decodeActionMessage(msg);
+        const { command, id: version } = this.decodeActionMessage(msg);
         switch (command) {
             case LiveConfigCommand.UPDATE:
-                if (id != undefined)
-                    await this.cacheDoc(id);
+                if (version != undefined)
+                    await this.cacheDoc(version);
                 else
                     await this.cacheDocs();
                 break;
             case LiveConfigCommand.REMOVE:
-                if (id != undefined)
-                    this.configManager.remove(id);
+                if (version != undefined)
+                    this.configManager.remove(version);
                 break;
             case LiveConfigCommand.ACTIVATE:
-                if (id != undefined)
-                    this.configManager.activate(id);
+                if (version != undefined)
+                    this.configManager.activate(version);
                 break;
             default:
                 console.warn("Invalid action - ", msg);
@@ -79,6 +79,7 @@ export class LiveConfig<T extends Config, Q> extends LiveStore<T, LiveConfigComm
     }
     get size() { return this.configManager.size; }
     get activeVersion() { return this.configManager.activeVersion; }
+    get activeConfig() { return this.configManager.activeConfig; }
     async createNew(config: T): Promise<void> {
         this.initCheck();
         await this.coldStore.insert(config);
