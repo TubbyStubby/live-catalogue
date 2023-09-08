@@ -15,7 +15,7 @@ export interface ConfigColdStore<T extends Config> {
     remove(version: Config["version"]): Promise<void>;
     insert(version: T): Promise<void>;
     updateField<K extends keyof T>(version: Config["version"], field: K, value: T[K]): Promise<void>;
-    updateFields(version: Config["version"], values: { [K in keyof Partial<T>]: T[K] }): Promise<void>;
+    updateFields(version: Config["version"], values: { [K in keyof Partial<T>]: Partial<T>[K] }): Promise<void>;
     flipStatus(versions: Config["version"][]): Promise<void>;
     flipStatus(...versions: Config["version"][]): Promise<void>;
 }
