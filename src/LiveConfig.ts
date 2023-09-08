@@ -7,7 +7,8 @@ import { DeepFrozen } from "constconst";
 enum LiveConfigCommand {
     UPDATE = "UPDATE",
     REMOVE = "REMOVE",
-    ACTIVATE = "ACTIVATE"
+    ACTIVATE = "ACTIVATE",
+    ADD = "ADD"
 }
 
 type LiveConfigOptions<T extends Config, P> =
@@ -49,14 +50,23 @@ export class LiveConfig<T extends Config> extends LiveStore<T, LiveConfigCommand
         if (doc != undefined)
             this.configManager.add(doc);
     }
+    protected async updateDoc(version: T["version"]): Promise<void> {
+        const doc = await this.coldStore.find(version);
+        if (doc != undefined)
+            this.configManager.update(doc);
+    }
     protected async action(msg: string): Promise<void> {
         const { command, id: version } = this.decodeActionMessage(msg);
         switch (command) {
-            case LiveConfigCommand.UPDATE:
+            case LiveConfigCommand.ADD:
                 if (version != undefined)
                     await this.cacheDoc(version);
                 else
                     await this.cacheDocs();
+                break;
+            case LiveConfigCommand.UPDATE:
+                if (version != undefined)
+                    await this.updateDoc(version);
                 break;
             case LiveConfigCommand.REMOVE:
                 if (version != undefined)
@@ -83,7 +93,7 @@ export class LiveConfig<T extends Config> extends LiveStore<T, LiveConfigCommand
     async createNew(config: T): Promise<void> {
         this.initCheck();
         await this.coldStore.insert(config);
-        const actionMsg: string = this.createActionMessage(LiveConfigCommand.UPDATE, config["version"]);
+        const actionMsg: string = this.createActionMessage(LiveConfigCommand.ADD, config["version"]);
         await this.pubsub.publish(this.channelName, actionMsg);
     }
     async remove(version: T["version"]): Promise<void> {

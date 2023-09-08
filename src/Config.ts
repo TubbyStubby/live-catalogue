@@ -19,6 +19,7 @@ export interface ConfigManager<T extends Config> {
     get(version: T["version"]): DeepFrozen<T> | undefined;
     remove(version: T["version"]): void;
     add(config: T): void;
+    update(updatedConfig: T): void;
     activate(version: T["version"]): void;
     assertVersion(version: unknown): asserts version is T["version"];
     assertStatus(status: unknown): asserts status is T["status"];
@@ -57,7 +58,7 @@ export class InMemoryConfigManager<TConfig extends Config> implements ConfigMana
     add(config: TConfig): void {
         this.assertVersion(config.version);
         this.assertStatus(config.status);
-        if(config.status == CONFIG_STATUS.ACTIVE && this.activeConfig != undefined && this.activeConfig.version != config.version) {
+        if(config.status == CONFIG_STATUS.ACTIVE && this.activeConfig != undefined) {
             throw InMemoryConfigManagerError.ACTIVE_OVERWRITE();
         }
         if(!this.configs.has(config.version)) {
@@ -69,6 +70,20 @@ export class InMemoryConfigManager<TConfig extends Config> implements ConfigMana
         } else {
             throw InMemoryConfigManagerError.DUPLICATE_VERSION(config.version);
         }
+    }
+    
+    update(updatedConfig: TConfig): void {
+        this.assertVersion(updatedConfig.version);
+        this.assertStatus(updatedConfig.status);
+        const config = this.configs.get(updatedConfig.version);
+        if(!config) return;
+        if(updatedConfig.status != config.status) {
+            throw InMemoryConfigManagerError.IMMUTABLE_FIELD_UPDATE("status");
+        }
+        const clone = structuredClone(updatedConfig);
+        const fakeClone = fakeDeepFreeze(clone);
+        this.configs.set(updatedConfig.version, clone);
+        this.fakeConfigs.set(updatedConfig.version, fakeClone);
     }
 
     remove(version: TConfig["version"]): void {
@@ -135,6 +150,10 @@ export class InMemoryConfigManagerError extends Error {
     
     static DUPLICATE_VERSION(version: Config["version"]): InMemoryConfigManagerError {
         return new InMemoryConfigManagerError(`DUPLICATE_VERSION: Config with version ${version} already present`);
+    }
+    
+    static IMMUTABLE_FIELD_UPDATE(field: string): InMemoryConfigManagerError {
+        return new InMemoryConfigManagerError(`IMMUTABLE_FIELD_UPDATE: Cannot update field ${field}`);
     }
 
     metadata: ErroMetadata;
