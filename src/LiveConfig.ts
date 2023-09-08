@@ -92,7 +92,7 @@ export class LiveConfig<T extends Config> extends LiveStore<T, LiveConfigCommand
         const actionMsg: string = this.createActionMessage(LiveConfigCommand.REMOVE, version);
         await this.pubsub.publish(this.channelName, actionMsg);
     }
-    async updateFields(version: Config["version"], values: { [K in keyof T]: T[K] }): Promise<void> {
+    async updateFields(version: Config["version"], values: { [K in keyof Partial<T>]: Partial<T>[K] }): Promise<void> {
         this.initCheck();
         for(const k in values)
             if(k == "version" || k == "status") throw LiveConfigError.FIELD_UPDATE(k, values[k]);
