@@ -4,7 +4,7 @@ import { PubSub } from "./PubSub";
 
 export type LiveStoreOptions<T, P> = {
     name: string,
-    pubsub: P,
+    pubsub?: P,
     fallBackToDefault?: boolean,
     skipInitIfDefaultSet?: boolean,
     default?: T,
@@ -13,8 +13,9 @@ export type LiveStoreOptions<T, P> = {
 export type LiveType = "LIVE_CATALOG" | "LIVE_CONFIG";
 export abstract class LiveStore<T extends Item | Config, Cmd> {
     protected abstract _type: LiveType;
+    protected abstract coldStore: unknown | undefined;
     protected initialized: boolean;
-    protected pubsub: PubSub;
+    protected pubsub: PubSub | undefined;
     protected fallBackToDefault: boolean;
     protected default: T | T[] | undefined;
     protected skipInitIfDefaultSet: boolean;
@@ -46,9 +47,9 @@ export abstract class LiveStore<T extends Item | Config, Cmd> {
     
     constructor(options: LiveStoreOptions<T, PubSub>) {
         this._name = options.name;
-        this.pubsub = options.pubsub;
+        if(options.pubsub) this.pubsub = options.pubsub;
         this.fallBackToDefault = options.fallBackToDefault ?? false;
-        this.default = options.default;
+        this.default = structuredClone(options.default);
         this.initialized = false;
         this.skipInitIfDefaultSet = options.skipInitIfDefaultSet ?? false;
         if(this.canSkipInit) this.cacheDocs();
@@ -60,11 +61,18 @@ export abstract class LiveStore<T extends Item | Config, Cmd> {
     get isDefaultSet(): boolean { return this.default != undefined; }
     get canSkipInit(): boolean { return this.skipInitIfDefaultSet && this.isDefaultSet; }
     
-    initCheck(): asserts this is this & { initialized: true } {
+    setPubSub(pubsub: PubSub) { this.pubsub = pubsub; }
+    abstract setColdStore(store: unknown): void;
+
+    protected assertPubSub(): asserts this is this & { pubsub: PubSub } { if(this.pubsub == undefined) throw new Error("Pubsub not set"); }
+    protected abstract assertColdStore(): asserts this is this & { coldStore: unknown };
+
+    initCheck(): asserts this is this & { initialized: true, pubsub: PubSub, coldStore: unknown } {
         if(!this.isInitiallized) throw new Error("Not Initialized");
     }
 
     async init(): Promise<void> {
+        this.assertPubSub(); this.assertColdStore();
         if(this.isInitiallized || this.canSkipInit) return;
         await this.cacheDocs();
         await this.#subscribe();
@@ -72,6 +80,7 @@ export abstract class LiveStore<T extends Item | Config, Cmd> {
     }
 
     async #subscribe(): Promise<void> {
+        this.assertPubSub();
         await this.pubsub.subscribe(this.channelName, async (msg: string) => {
             await this.action(msg);
         });

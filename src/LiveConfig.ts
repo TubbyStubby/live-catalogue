@@ -15,25 +15,29 @@ type LiveConfigOptions<T extends Config, P> =
     LiveStoreOptions<T, P>
     & {
         configManager: ConfigManager<T>,
-        coldStore: ConfigColdStore<T>
+        coldStore?: ConfigColdStore<T>
     }
 
 export class LiveConfig<T extends Config> extends LiveStore<T, LiveConfigCommand> {
     protected _type: LiveType = "LIVE_CONFIG";
     protected configManager: ConfigManager<T>;
-    protected coldStore: ConfigColdStore<T>;
+    protected coldStore: ConfigColdStore<T> | undefined;
     constructor(options: LiveConfigOptions<T, PubSub>) {
         super(options);
         this.configManager = options.configManager;
-        this.coldStore = options.coldStore;
+        if (options.coldStore) this.coldStore = options.coldStore;
     }
     protected assertCommand(x: unknown): asserts x is LiveConfigCommand {
         if(typeof x != 'string') throw new Error("Bad Command");
         if(!(x in LiveConfigCommand)) throw new Error("Bad Command");
     }
+    protected assertColdStore(): asserts this is this & { coldStore: ConfigColdStore<T>; } {
+        if (this.coldStore == undefined) throw new Error("ColdStore is required");
+    }
+    setColdStore(store: ConfigColdStore<T>) { this.coldStore = store; }
     protected async cacheDocs(): Promise<void> {
         let docs: T[];
-        if (this.canSkipInit) {
+        if (this.canSkipInit && !this.initialized) {
             if (this.default == undefined)
                 docs = [];
             else if (this.default instanceof Array)
@@ -41,16 +45,19 @@ export class LiveConfig<T extends Config> extends LiveStore<T, LiveConfigCommand
             else
                 docs = [this.default];
         } else {
+            this.assertColdStore();
             docs = await this.coldStore.findAll();
         }
         docs.forEach(x => this.configManager.add(x));
     }
     protected async cacheDoc(version: T["version"]): Promise<void> {
+        this.assertColdStore();
         const doc = await this.coldStore.find(version);
         if (doc != undefined)
             this.configManager.add(doc);
     }
     protected async updateDoc(version: T["version"]): Promise<void> {
+        this.assertColdStore();
         const doc = await this.coldStore.find(version);
         if (doc != undefined)
             this.configManager.update(doc);
@@ -90,6 +97,7 @@ export class LiveConfig<T extends Config> extends LiveStore<T, LiveConfigCommand
     get size() { return this.configManager.size; }
     get activeVersion() { return this.configManager.activeVersion; }
     get activeConfig() { return this.configManager.activeConfig; }
+    initCheck(): asserts this is this & { initialized: true; pubsub: PubSub; coldStore: ConfigColdStore<T>; } { super.initCheck(); }
     async createNew(config: T): Promise<void> {
         this.initCheck();
         await this.coldStore.insert(config);

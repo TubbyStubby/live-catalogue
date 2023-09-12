@@ -1,6 +1,6 @@
 {
   "name": "redstreak",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "live catalog/config which can update and sync changes in real time",
   "main": "lib/index.js",
   "types": "lib/types",
