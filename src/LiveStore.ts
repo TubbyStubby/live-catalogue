@@ -72,7 +72,7 @@ export abstract class LiveStore<T extends Item | Config, Cmd> {
 
     async init(): Promise<void> {
         this.assertPubSub(); this.assertColdStore();
-        if(this.isInitiallized || this.canSkipInit) return;
+        if(this.isInitiallized) return;
         await this.cacheDocs();
         await this.#subscribe();
         this.initialized = true;
