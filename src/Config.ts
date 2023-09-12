@@ -17,6 +17,7 @@ function isActive(c: Config) {
 export interface ConfigManager<T extends Config> {
     get(): DeepFrozen<T> | undefined;
     get(version: T["version"]): DeepFrozen<T> | undefined;
+    getAll(): DeepFrozen<T>[];
     remove(version: T["version"]): void;
     add(config: T): void;
     update(updatedConfig: T): void;
@@ -53,6 +54,10 @@ export class InMemoryConfigManager<TConfig extends Config> implements ConfigMana
             if(this.activeConfig)
                 return this.fakeConfigs.get(this.activeConfig.version);
         }
+    }
+
+    getAll(): DeepFrozen<TConfig>[] {
+        return [...this.fakeConfigs.values()];
     }
 
     add(config: TConfig): void {
