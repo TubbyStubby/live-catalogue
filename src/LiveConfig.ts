@@ -95,6 +95,7 @@ export class LiveConfig<T extends Config> extends LiveStore<T, LiveConfigCommand
             return this.configManager.get(version);
         }
     }
+    getAll() { return this.configManager.getAll(); }
     get size() { return this.configManager.size; }
     get activeVersion() { return this.configManager.activeVersion; }
     get activeConfig() { return this.configManager.activeConfig; }
