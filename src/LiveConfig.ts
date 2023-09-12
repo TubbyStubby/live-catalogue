@@ -26,6 +26,7 @@ export class LiveConfig<T extends Config> extends LiveStore<T, LiveConfigCommand
         super(options);
         this.configManager = options.configManager;
         if (options.coldStore) this.coldStore = options.coldStore;
+        if(this.canSkipInit) this.cacheDocs();
     }
     protected assertCommand(x: unknown): asserts x is LiveConfigCommand {
         if(typeof x != 'string') throw new Error("Bad Command");

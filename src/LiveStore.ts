@@ -52,7 +52,6 @@ export abstract class LiveStore<T extends Item | Config, Cmd> {
         this.default = structuredClone(options.default);
         this.initialized = false;
         this.skipInitIfDefaultSet = options.skipInitIfDefaultSet ?? false;
-        if(this.canSkipInit) this.cacheDocs();
     }
 
     get name(): string { return this._name; }

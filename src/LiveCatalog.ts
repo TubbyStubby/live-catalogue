@@ -24,6 +24,7 @@ export class LiveCatalog<T extends Item, Q> extends LiveStore<T, LiveCatalogComm
         super(options);
         this.catalog = options.catalog;
         if(options.coldStore) this.coldStore = options.coldStore;
+        if(this.canSkipInit) this.cacheDocs();
     }
     get size(): number { return this.catalog.size; }
     setColdStore(store: ItemColdStore<T, Q>): void {
