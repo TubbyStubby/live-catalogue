@@ -24,7 +24,7 @@ export class LiveCatalog<T extends Item, Q> extends LiveStore<T, LiveCatalogComm
         super(options);
         this.catalog = options.catalog;
         if(options.coldStore) this.coldStore = options.coldStore;
-        if(this.canSkipInit) this.cacheDocs();
+        if(this.canSkipInit) this.cacheDocs(true);
     }
     get size(): number { return this.catalog.size; }
     setColdStore(store: ItemColdStore<T, Q>): void {
@@ -40,9 +40,9 @@ export class LiveCatalog<T extends Item, Q> extends LiveStore<T, LiveCatalogComm
         if(typeof x != 'string') throw new Error("Bad Command");
         if(!(x in LiveCatalogCommand)) throw new Error("Bad Command");
     }
-    protected async cacheDocs(): Promise<void> {
+    protected async cacheDocs(skipInit?: boolean): Promise<void> {
         let docs: T[];
-        if (this.canSkipInit) {
+        if (this.canSkipInit && !this.initialized && skipInit) {
             if (this.default == undefined)
                 docs = [];
             else if (this.default instanceof Array)

@@ -21,7 +21,7 @@ export abstract class LiveStore<T extends Item | Config, Cmd> {
     protected skipInitIfDefaultSet: boolean;
     protected _name: string;
 
-    protected abstract cacheDocs(): Promise<void>;
+    protected abstract cacheDocs(skipInit?: boolean): Promise<void>;
     protected abstract cacheDoc(x: unknown): Promise<void>;
     protected abstract action(msg: string): Promise<void>;
     protected abstract assertCommand(x: unknown): asserts x is Cmd;

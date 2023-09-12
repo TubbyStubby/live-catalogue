@@ -26,7 +26,7 @@ export class LiveConfig<T extends Config> extends LiveStore<T, LiveConfigCommand
         super(options);
         this.configManager = options.configManager;
         if (options.coldStore) this.coldStore = options.coldStore;
-        if(this.canSkipInit) this.cacheDocs();
+        if(this.canSkipInit) this.cacheDocs(true);
     }
     protected assertCommand(x: unknown): asserts x is LiveConfigCommand {
         if(typeof x != 'string') throw new Error("Bad Command");
@@ -36,9 +36,9 @@ export class LiveConfig<T extends Config> extends LiveStore<T, LiveConfigCommand
         if (this.coldStore == undefined) throw new Error("ColdStore is required");
     }
     setColdStore(store: ConfigColdStore<T>) { this.coldStore = store; }
-    protected async cacheDocs(): Promise<void> {
+    protected async cacheDocs(skipInit?: boolean): Promise<void> {
         let docs: T[];
-        if (this.canSkipInit && !this.initialized) {
+        if (this.canSkipInit && !this.initialized && skipInit) {
             if (this.default == undefined)
                 docs = [];
             else if (this.default instanceof Array)
